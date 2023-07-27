@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>JA</title>
+        <link rel="icon" type="image/x-icon" href="assets/img/jaLogo.webp" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+        <!-- Google fonts-->
+        <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="css/styles.css" rel="stylesheet" />
+        
+        <!-- Mapbox CSS -->
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+<!-- Mapbox JS -->
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<script src="https://unpkg.com/turf@6.5.0/turf.min.js"></script>
+<style>
+ 
+  
+ #map {
+      
+  position: absolute;
+  z-index: 3;
+
+  top: 300%;
+  left: 50%;
+  width: 73%;
+  height: 80%;
+  transform: translate(-50%, -50%);
+}
+
+    .controls {
+      position: absolute;
+      top: 256%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  font-family: Arial, sans-serif;
+  z-index: 1000;
+    }
+  
+    .controls label {
+  display: flex; /* Use flex layout */
+  align-items: center; /* Vertically center the elements */
+  margin-bottom: 5px;
+}
+
+.controls input[type="checkbox"] {
+  margin-right: 5px;
+  margin-bottom: 0; /* Remove the default bottom margin */
+}
+.controls select {
+  padding: 5px;
+  border: none;
+  border-radius: 5px;
+  background: #f2f2f2;
+  transition: background 0.3s;
+}
+
+.controls select:hover {
+  background: #e6e6e6;
+}
+  
+    .legend {
+      position: absolute;
+     top: 315%; 
+     z-index: 4; 
+      left: 10%;
+      background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 5px;
+  font-family: Arial, sans-serif;
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);}
+  
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+  
+    .legend-color {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #333;
+  margin-right: 10px;
+}
+
+.legend-gradient {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(to right, #FFEDA0, #FD8D3C, #FC4E2A, #E31A1C, #BD0026, #800026);
+  margin-bottom: 10px;
+}
+    .switch {
+  position: relative;
+  display:flex; 
+flex: wrap; 
+  display: inline-block;
+  width: 40px; /* Further reduced width */
+  height: 22px; /* Further reduced height */
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px; /* Further reduced height */
+  width: 18px; /* Further reduced width */
+  left: 2px; /* Adjusted accordingly */
+  bottom: 2px; /* Adjusted accordingly */
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(18px); /* Adjusted accordingly */
+  -ms-transform: translateX(18px); /* Adjusted accordingly */
+  transform: translateX(18px); /* Adjusted accordingly */
+}
+
+
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+.toggle-container {
+  display: flex;
+  align-items: center; /* Vertically aligns the toggle switch and the label text */
+  gap: 10px; /* Creates space between the toggle switch and the label text */
+}
+
+.toggle-label {
+  order: 2; /* Puts the label text after the toggle switch */
+}
+
+.mapboxgl-popup {
+    max-width: 300px;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    font-size: 14px;
+    line-height: 18px;
+    border-radius: 5px;
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.mapboxgl-popup-content {
+    padding: 15px;
+}
+
+.mapboxgl-popup-content h3 {
+    margin: 0 0 5px;
+    font-size: 18px;
+    line-height: 22px;
+}
+
+.mapboxgl-popup-content p {
+    margin: 0;
+}
+.cell-label {
+    text-align: right;
+    padding-right: 10px;
+    font-weight: bold;
+}
+
+.cell-data {
+    text-align: left;
+}
+
+
+  </style>
+    </head>
+    <body id="page-top">
+        <!-- Navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+            <div class="container px-4 px-lg-5">
+                <img class="navbar-brand" href="#page-top" src="assets/img/jaLogo.webp" alt="..."  style = "width: 23%;" /></div>
+                <button class="navbar-toggler navbar-toggler-right" type="button" data-bs-toggle="collapse" data-bs-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+                    Menu
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarResponsive">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#projects">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link" href="#signup">Analysis</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <!-- Masthead-->
+        <header class="masthead">
+            <div class="container px-4 px-lg-5 d-flex h-100 align-items-center justify-content-center">
+                <div class="d-flex justify-content-center">
+                    <div class="text-center">
+                        <h1 class="mx-auto my-0 text-uppercase" style="font-size: 3.75em; color: white; ">Bridging Bilingual Success: Harris County’s Latine 
+                            Access to Dual-Language Education</h1>
+                            
+                        <h2 class="text-white-50 mx-auto mt-2 mb-5"></h2>
+                        <a class="btn btn-primary" href="#projects">CLICK ME </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <!-- About-->
+        <section class="about-section text-center" id="about">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-lg-8">
+                        <p class="text-white-50">
+                            <a href="https://startbootstrap.com/theme/grayscale/"></a>
+                        </p>
+                    </div>
+                </div>
+                <!-- <img class="img-fluid" src="assets/img/ipad.png" alt="..." /> -->
+            </div>
+            
+        </section>
+        <!-- Projects-->
+        
+        <section class="projects-section bg-light" id="about">
+            
+            <div class="container px-4 px-lg-5">
+                <!-- Featured Project Row-->
+                <div class="row gx-0 mb-4 mb-lg-5 align-items-center">
+                    <!-- <div class="col-xl-8 col-lg-7"><img class="img-fluid mb-3 mb-lg-0" src="assets/img/bg-masthead.jpg" alt="..." /></div> -->
+                    <div class="col-xl-4 col-lg-5">
+                       
+                    </div>
+                </div>
+                <!-- Project One Row-->
+                <div class="row gx-0 mb-5 mb-lg-0 justify-content-center">
+                    <div class="col-lg-6"><img class="img-fluid" src="assets/img/datapic.png" alt="..."  style = "width: 50%; position: relative; left: 20%; top: 10%;" /></div>
+                    <div class="col-lg-6">
+                        <div class=" text-center h-100 project">
+                            <div class="d-flex h-100">
+                                <div class="project-text w-100 my-auto text-center text-lg-left">
+                                    <h4 class="text-black">The interactive dashboard utilizes Mapbox API to visualize school zones, travel times, and demographics across Harris County. By mapping dual language programs, median incomes, racial makeup, and school quality indicators, it analyzes Latine students' access to bilingual education opportunities relative to their neighborhoods.</h4>
+                                    <p class="mb-0 text-white-50"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Project Two Row-->
+                <div class="row gx-0 justify-content-center">
+                    <div class="col-lg-6"><img class="img-fluid" src="assets/img/datapic1.png" alt="..." style = "width: 50%;  position: relative; left: 30%; top: 15%; " /></div>
+                    <div class="col-lg-6 order-lg-first">
+                        <div class=" text-center h-100 project">
+                            <div class="d-flex h-100">
+                                <div class="project-text w-100 my-auto text-center text-lg-right">
+                                    <h4 class="text-black"> The tool overlays school locations, catchment areas, and travel times onto maps of income, race, and immigration status in Harris County. It aims to understand if Latine students can reach highly-rated dual language programs given the demographic makeup of their communities and transportation limitations.</h4>
+                                    <p class="mb-0 text-white-50"></p>
+                                </div>
+                            </div>
+                        </div>
+           
+                </div>
+
+            </div>
+       
+            <section class="projects-section bg-light" id="projects" >
+                <!-- Other existing code here -->
+            
+                <div id="map-container" style="width: 50%; height: 50%; ">
+                   
+                
+                <!-- Other existing code here -->
+                <div id="map"></div>
+                
+                <div class="controls">
+                  <label>
+                    <select id="toggleMap">
+                      <option value="mhi.geojson">Median Household Income</option>
+            
+                      <option value="white_per.geojson">White Percentage</option>
+                      <option value="hisp_per.geojson">Hispanic Percentage</option>
+                    </select>
+                  </label>
+                  <div class="toggle-container">
+                    <label class="switch">
+                        <input type="checkbox" id="toggleIsochrone" checked />
+                        <span class="slider round"></span>
+                    </label>
+                    <label for="toggleIsochrone" class="toggle-label">Toggle Isochrone</label>
+                </div>
+                
+                
+              
+                
+                  <label>
+                    Mode:
+                    <select id="mode">
+                      <option value="driving">Driving</option>
+                      <option value="walking">Walking</option>
+                    </select>
+                  </label>
+                  <label>
+                    Duration:
+                    <select id="duration">
+                      <option value="10">10 min</option>
+                      <option value="15">15 min</option>
+                      <option value="20">20 min</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="legend" id="legend"></div>
+                <script>
+                  mapboxgl.accessToken =
+                    "pk.eyJ1Ijoia2g3OCIsImEiOiJjbGo0eXAyM20wNmE5M2VvaDc1NjloMjRxIn0.PNw6d3FBuIyzbnV5pmf9AA";
+                  const map = new mapboxgl.Map({
+                    container: "map",
+                    style: "mapbox://styles/mapbox/streets-v12",
+                    center: [-95.3698, 29.7604],
+                    zoom: 10.3,
+                  });
+            
+                  const toggleMap = document.getElementById("toggleMap");
+                  const toggleIsochrone = document.getElementById("toggleIsochrone");
+                  const modeSelect = document.getElementById("mode");
+                  const durationSelect = document.getElementById("duration");
+                  const isochroneLayerId = "isochrone";
+                  const polygonLayerId = "polygons";
+            
+                  function createIsochrone(coordinates, mode, duration) {
+                    const url = `https://api.mapbox.com/isochrone/v1/mapbox/${mode}/${coordinates.join(
+                      ","
+                    )}?contours_minutes=${duration}&polygons=true&access_token=${
+                      mapboxgl.accessToken
+                    }`;
+                    return fetch(url)
+                      .then((response) => response.json())
+                      .then((data) => data.features[0]);
+                  }
+            
+                  function updateIsochrone() {
+                    const mode = modeSelect.value;
+                    const duration = durationSelect.value;
+                    const features = map.queryRenderedFeatures({ layers: ["places"] });
+                    const coordinates = features.map((feature) => feature.geometry.coordinates);
+            
+                    Promise.all(
+                      coordinates.map((coords) => createIsochrone(coords, mode, duration))
+                    ).then((isochrones) => {
+                      const isochroneCollection = {
+                        type: "FeatureCollection",
+                        features: isochrones,
+                      };
+            
+                      if (map.getSource(isochroneLayerId)) {
+                        map.getSource(isochroneLayerId).setData(isochroneCollection);
+                      } else {
+                        map.addSource(isochroneLayerId, {
+                          type: "geojson",
+                          data: isochroneCollection,
+                        });
+                        map.addLayer({
+                          id: isochroneLayerId,
+                          type: "fill",
+                          source: isochroneLayerId,
+                          paint: {
+                            "fill-color": [
+                              "interpolate",
+                              ["linear"],
+                              ["get", "value"],
+                              24120.18,
+                              "#FFEDA0",
+                              54835.04,
+                              "#FD8D3C",
+                              85549.91,
+                              "#FC4E2A",
+                              116264.78,
+                              "#E31A1C",
+                              146979.65,
+                              "#BD0026",
+                              177694.52,
+                              "#800026",
+                            ],
+                            "fill-opacity": 0.45,
+                            "fill-outline-color": "#000000", // Black outline color
+                          },
+                          
+                        });
+                      }
+                      
+            //           map.addLayer({
+            //   id: isochroneLayerId,
+            //   type: "line", // change from "fill" to "line"
+            //   source: isochroneLayerId,
+            //   paint: {
+            //     "line-color": "#000000", // Specify line color here
+            //     "line-width": 2, // Specify line width here
+            //   },
+            // });
+            
+                    });
+                  }
+            
+            
+                  
+                  toggleMap.addEventListener("change", () => {
+                    const selectedFile = toggleMap.value;
+                    // Fetch the selected GeoJSON data from the file
+                    fetch(selectedFile)
+                      .then((response) => response.json())
+                      .then((data) => {
+                        // Update the source data for the polygon layer
+                        map.getSource(polygonLayerId).setData(data);
+            
+                        // Update the fill color based on the selected option
+                        const selectedOption = toggleMap.options[toggleMap.selectedIndex];
+                        updateFillColor(selectedOption);
+                        updateLegend(selectedOption);
+                      });
+                  });
+            
+                  toggleIsochrone.addEventListener("change", () => {
+                    const visibility = toggleIsochrone.checked ? "visible" : "none";
+                    map.setLayoutProperty(isochroneLayerId, "visibility", visibility);
+                  });
+            
+                  modeSelect.addEventListener("change", updateIsochrone);
+                  durationSelect.addEventListener("change", updateIsochrone);
+            
+                  function updateFillColor(selectedOption) {
+                    const colors = {
+                      "Median Household Income": [
+                        24120.18,
+                        "#FFEDA0",
+                        54835.04,
+                        "#FD8D3C",
+                        85549.91,
+                        "#FC4E2A",
+                        116264.78,
+                        "#E31A1C",
+                        146979.65,
+                        "#BD0026",
+                        177694.52,
+                        "#800026",
+                      ],
+                      "White Percentage": [
+                        7.4,
+                        "#FFEDA0",
+                        17.2,
+                        "#FD8D3C",
+                        33.4,
+                        "#FC4E2A",
+                        50.2,
+                        "#E31A1C",
+                        66.7,
+                        "#BD0026",
+                        83.6,
+                        "#800026",
+                      ],
+                      "Hispanic Percentage": [
+                        7.4,
+                        "#FFEDA0",
+                        17.2,
+                        "#FD8D3C",
+                        33.4,
+                        "#FC4E2A",
+                        50.2,
+                        "#E31A1C",
+                        66.7,
+                        "#BD0026",
+                        83.6,
+                        "#800026",
+                      ],
+                    };
+            
+                    const defaultColors = {
+                      "Median Household Income": [
+                        24120.18,
+                        "#FFEDA0",
+                        54835.04,
+                        "#FD8D3C",
+                        85549.91,
+                        "#FC4E2A",
+                        116264.78,
+                        "#E31A1C",
+                        146979.65,
+                        "#BD0026",
+                        177694.52,
+                        "#800026",
+                      ],
+                      "White Percentage": [
+                        7.4,
+                        "#FFEDA0",
+                        17.2,
+                        "#FD8D3C",
+                        33.4,
+                        "#FC4E2A",
+                        50.2,
+                        "#E31A1C",
+                        66.7,
+                        "#BD0026",
+                        83.6,
+                        "#800026",
+                      ],
+                      "Hispanic Percentage": [
+                        7.4,
+                        "#FFEDA0",
+                        17.2,
+                        "#FD8D3C",
+                        33.4,
+                        "#FC4E2A",
+                        50.2,
+                        "#E31A1C",
+                        66.7,
+                        "#BD0026",
+                        83.6,
+                        "#800026",
+                      ],
+                    };
+            
+                    const colorValues =
+                      colors[selectedOption.text] || defaultColors[selectedOption.text];
+                    if (colorValues) {
+                      map.setPaintProperty(polygonLayerId, "fill-color", [
+                        "interpolate",
+                        ["linear"],
+                        ["number", ["get", "value"]],
+                        ...colorValues,
+                      ]);
+                    }
+                  }
+            
+                  function updateLegend(selectedOption) {
+                    const legend = document.getElementById("legend");
+                    const legends = {
+                      "Median Household Income": [
+                        { color: "#ffeda0", value: "$24,120 - $54,835" },
+                        { color: "#fd8d3c", value: "$54,835 - $85,549" },
+                        { color: "#fc4e2a", value: "$85,549 - $116,264" },
+                        { color: "#e31a1c", value: "$116,264 - $146,979" },
+                        { color: "#bd0026", value: "$146,979 - $177,694" },
+                        { color: "#800026", value: "$177,694 - $208,409" },
+                      ],
+                      "White Percentage": [
+                        { color: "#ffeda0", value: "7.4 - 17.2 %" },
+                        { color: "#fd8d3c", value: "17.2 - 33.4 %" },
+                        { color: "#fc4e2a", value: "33.4 - 50.2 %" },
+                        { color: "#e31a1c", value: "50.2 - 66.7 %" },
+                        { color: "#bd0026", value: "66.7 - 83.6 %" },
+                        { color: "#800026", value: "83.6 - 100.0 %" },
+                      ],
+                      "Hispanic Percentage": [
+                        { color: "#ffeda0", value: "7.4 - 17.2 %" },
+                        { color: "#fd8d3c", value: "17.2 - 33.4 %" },
+                        { color: "#fc4e2a", value: "33.4 - 50.2 %" },
+                        { color: "#e31a1c", value: "50.2 - 66.7 %" },
+                        { color: "#bd0026", value: "66.7 - 83.6 %" },
+                        { color: "#800026", value: "83.6 - 100.0 %" },
+                      ],
+                    };
+            
+                    const selectedLegend = legends[selectedOption.text] || [];
+            
+                    legend.innerHTML = "";
+            
+                    selectedLegend.forEach((item) => {
+                      const legendItem = document.createElement("div");
+                      legendItem.classList.add("legend-item");
+            
+                      const colorBox = document.createElement("div");
+                      colorBox.classList.add("legend-color");
+                      colorBox.style.backgroundColor = item.color;
+            
+                      const valueText = document.createElement("div");
+                      valueText.textContent = item.value;
+            
+                      legendItem.appendChild(colorBox);
+                      legendItem.appendChild(valueText);
+                      legend.appendChild(legendItem);
+                    });
+                  }
+            
+                  map.on("load", () => {
+    map.addSource("places", {
+        type: "geojson",
+        data: {
+            type: "FeatureCollection",
+            features: [
+                {
+                    type: "Feature",
+                    properties: {
+                        description:
+                            `<strong>Burnet ES</strong>
+                            <p>
+                            <ul>
+                                <li>TEA Rating: B</li>
+                                <li>Percent of Economically Disadvantaged: ${((368/405)*100).toFixed(2)}%</li>
+                                <li>Percent of Recent Immigrant: ${((12/405)*100).toFixed(2)}%</li>
+                                <li>Net Transfer:</li>
+                                    <ul>
+                                        <li>Black/African American: -26.67%</li>
+                                        <li>Hispanic/Latino: 5.76%</li>
+                                        <li>White: 11.11%</li>
+                                    </ul>
+                                <li>Retention Rate:</li>
+                                    <ul>
+                                        <li>Black/African American: 33.33%</li>
+                                        <li>Hispanic/Latino: 61.93%</li>
+                                        <li>White: 62.50%</li>
+                                    </ul>
+                            </ul>
+                            </p>`,
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-95.31864238234907, 29.745867920395987], // Burnet ES coordinates
+                    },
+                },
+                {
+                    type: "Feature",
+                    properties: {
+                        description:
+                            `<strong>Love ES</strong>
+                            <p>
+                            <ul>
+                                <li>TEA Rating: A</li>
+                                <li>Percent of Economically Disadvantaged: ${((246/327)*100).toFixed(2)}%</li>
+                                <li>Percent of Recent Immigrant: ${((11/327)*100).toFixed(2)}%</li>
+                                <li>Net Transfer:</li>
+                                    <ul>
+                                        <li>Black/African American: 12.90%</li>
+                                        <li>Hispanic/Latino: 12.90%</li>
+                                        <li>White: -94.52%</li>
+                                    </ul>
+                                <li>Retention Rate:</li>
+                                    <ul>
+                                        <li>Black/African American: 59.44%</li>
+                                        <li>Hispanic/Latino: 59.44%</li>
+                                        <li>White: 13.13%</li>
+                                    </ul>
+                            </ul>
+                            </p>`,
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-95.40910203916688, 29.79324670438184], // Love ES coordinates
+                    },
+                },
+                {
+                    type: "Feature",
+                    properties: {
+                        description:
+                            `<strong>Pugh ES</strong>
+                            <p>
+                            <ul>
+                                <li>TEA Rating: A</li>
+                                <li>Percent of Economically Disadvantaged: ${((319/331)*100).toFixed(2)}%</li>
+                                <li>Percent of Recent Immigrant: ${((6/331)*100).toFixed(2)}%</li>
+                                <li>Net Transfer:</li>
+                                    <ul>
+                                        <li>Black/African American: 33.33%</li>
+                                        <li>Hispanic/Latino: 18.48%</li>
+                                        <li>White: -50.00%</li>
+                                    </ul>
+                                <li>Retention Rate:</li>
+                                    <ul>
+                                        <li>Black/African American: 50.00%</li>
+                                        <li>Hispanic/Latino: 71.59%</li>
+                                        <li>White: 0.00%</li>
+                                    </ul>
+                            </ul>
+                            </p>`,
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-95.30714668556853, 29.767877406687024], // Pugh ES coordinates
+                    },
+                },
+                {
+                    type: "Feature",
+                    properties: {
+                        description:
+                            `<strong>Scarborough ES</strong>
+                            <p>
+                            <ul>
+                                <li>TEA Rating: B</li>
+                                <li>Percent of Economically Disadvantaged: ${((584/608)*100).toFixed(2)}%</li>
+                                <li>Percent of Recent Immigrant: ${((39/608)*100).toFixed(2)}%</li>
+                                <li>Net Transfer:</li>
+                                    <ul>
+                                        <li>Black/African American: 10.34%</li>
+                                        <li>Hispanic/Latino: 0.29%</li>
+                                        <li>White: -16.67%</li>
+                                    </ul>
+                                <li>Retention Rate:</li>
+                                    <ul>
+                                        <li>Black/African American: 55.56%</li>
+                                        <li>Hispanic/Latino: 88.46%</li>
+                                        <li>White: 66.67%</li>
+                                    </ul>
+                            </ul>
+                            </p>`,
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-95.33687422404198, 29.87202130027925], // Scarborough ES coordinates
+                    },
+                },
+                {
+                    type: "Feature",
+                    properties: {
+                        description:
+                            `<strong>Shearn ES</strong>
+                            <p>
+                            <ul>
+                                <li>TEA Rating: C</li>
+                                <li>Percent of Economically Disadvantaged: ${((456/466)*100).toFixed(2)}%</li>
+                                <li>Percent of Recent Immigrant: ${((22/466)*100).toFixed(2)}%</li>
+                                <li>Net Transfer:</li>
+                                    <ul>
+                                        <li>Black/African American: -11.26%</li>
+                                        <li>Hispanic/Latino: 4.14%</li>
+                                        <li>White: -61.54%</li>
+                                    </ul>
+                                <li>Retention Rate:</li>
+                                    <ul>
+                                        <li>Black/African American: 54.23%</li>
+                                        <li>Hispanic/Latino: 75.17%</li>
+                                        <li>White: 23.08%</li>
+                                    </ul>
+                            </ul>
+                            </p>`,
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-95.44098116647082, 29.677967843530062], // Shearn ES coordinates
+                    },
+                },
+                {
+                    type: "Feature",
+                    properties: {
+                        description:
+                            `<strong>Wharton ES</strong>
+                            <p>
+                            <ul>
+                                <li>TEA Rating: A</li>
+                                <li>Percent of Economically Disadvantaged: ${((285/609)*100).toFixed(2)}%</li>
+                                <li>Percent of Recent Immigrant: ${((7/609)*100).toFixed(2)}%</li>
+                                <li>Net Transfer:</li>
+                                    <ul>
+                                        <li>Black/African American: 28.57%</li>
+                                        <li>Hispanic/Latino: 38.69%</li>
+                                        <li>White: 6.06%</li>
+                                    </ul>
+                                <li>Retention Rate:</li>
+                                    <ul>
+                                        <li>Black/African American: 32.00%</li>
+                                        <li>Hispanic/Latino: 77.94%</li>
+                                        <li>White: 69.77%</li>
+                                    </ul>
+                            </ul>
+                            </p>`,
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: [-95.39082172340328, 29.75438357216597], // Wharton ES coordinates
+                    },
+                },
+            ],
+        },
+    });
+                    // Add a layer showing the places.
+                    map.addLayer({
+                      id: "places",
+                      type: "circle",
+                      source: "places",
+                      paint: {
+                        "circle-color": "#4264fb",
+                        "circle-radius": 6,
+                        "circle-stroke-width": 2,
+                        "circle-stroke-color": "#ffffff",
+                      },
+                    });
+            
+                    // Create a popup, but don't add it to the map yet.
+                    const popup = new mapboxgl.Popup({
+                      closeButton: false,
+                      closeOnClick: false,
+                    });
+            
+                    // Load isochrones automatically
+            
+                    map.on("mouseenter", "places", (e) => {
+                      // Change the cursor style as a UI indicator.
+                      map.getCanvas().style.cursor = "pointer";
+            
+                      // Copy coordinates array.
+                      const coordinates = e.features[0].geometry.coordinates.slice();
+                      const description = e.features[0].properties.description;
+            
+                      // Ensure that if the map is zoomed out such that multiple
+                      // copies of the feature are visible, the popup appears
+                      // over the copy being pointed to.
+                      while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                        coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                      }
+            
+                      // Populate the popup and set its coordinates
+                      // based on the feature found.
+                      popup.setLngLat(coordinates).setHTML(description).addTo(map);
+                    });
+            
+                    map.on("mouseleave", "places", () => {
+                      map.getCanvas().style.cursor = "";
+                      popup.remove();
+                    });
+            
+                    // Fetch the initial GeoJSON data based on the selected option
+                    const selectedOption = toggleMap.options[toggleMap.selectedIndex];
+                    fetch(selectedOption.value)
+                      .then((response) => response.json())
+                      .then((data) => {
+                        // Add the GeoJSON data as a new source and layer
+                        map.addSource(polygonLayerId, {
+                          type: "geojson",
+                          data: data,
+                        });
+            
+                        // Update the fill color based on the selected option
+                        updateFillColor(selectedOption);
+                        updateLegend(selectedOption);
+            
+                        map.addLayer(
+                          {
+                            id: polygonLayerId,
+                            type: "fill",
+                            source: polygonLayerId,
+                            layout: {},
+                            paint: {
+                              "fill-opacity": 0.60,
+                              "fill-color": [
+                                "interpolate",
+                                ["linear"],
+                                ["number", ["get", "value"]],
+                                24120.18,
+                                "#FFEDA0",
+                                54835.04,
+                                "#FD8D3C",
+                                85549.91,
+                                "#FC4E2A",
+                                116264.78,
+                                "#E31A1C",
+                                146979.65,
+                                "#BD0026",
+                                177694.52,
+                                "#800026",
+                              ],
+                              "fill-outline-color": "#000000", // Black outline color
+                            },
+                          },
+                          "places"
+                        );
+            
+                        updateIsochrone();
+                      })
+                      .catch((error) => {
+                        console.error("Error loading GeoJSON data:", error);
+                      });
+                  });
+            
+                  // Add zoom and rotation controls to the map.
+                  map.addControl(new mapboxgl.NavigationControl());
+
+
+let mhiData, whiteData, hispData;
+
+// Fetch the data when the page loads
+Promise.all([
+  fetch('mhi.geojson').then(response => response.json()),
+  fetch('white_per.geojson').then(response => response.json()),
+  fetch('hisp_per.geojson').then(response => response.json())
+]).then(([mhi, white, hisp]) => {
+  mhiData = mhi;
+  whiteData = white;
+  hispData = hisp;
+}).catch(error => {
+  console.error('Error loading GeoJSON data:', error);
+});
+
+// ...
+
+// Then, in the 'click' event listener:
+
+map.on('click', polygonLayerId, function (e) {
+  if (e.features.length > 0) {
+    // Get the id of the first feature
+    const polygonId = e.features[0].properties.geoid; // Use 'geoid' as the unique identifier property
+
+    const mhiFeature = mhiData.features.find(feature => feature.properties.geoid === polygonId);
+    const whiteFeature = whiteData.features.find(feature => feature.properties.geoid === polygonId);
+    const hispFeature = hispData.features.find(feature => feature.properties.geoid === polygonId);
+
+    const mhi = mhiFeature ? mhiFeature.properties.value : 'N/A';
+    const whitePer = whiteFeature ? whiteFeature.properties.value : 'N/A';
+    const hispPer = hispFeature ? hispFeature.properties.value : 'N/A';
+
+    // Convert and format the data with a dollar sign
+    const formattedMhi = formatNumber(mhi, true);
+    const formattedWhitePer = formatNumber(whitePer);
+    const formattedHispPer = formatNumber(hispPer);
+
+    new mapboxgl.Popup()
+    .setLngLat(e.lngLat)
+    .setHTML(`
+        <div>
+            <h5>School Zone Detials: </h5>
+            <table>
+                <tr>
+                    <td class="cell-label">Median Household Income:</td>
+                    <td class="cell-data">${formattedMhi}</td>
+                </tr>
+                <tr>
+                    <td class="cell-label">White %:</td>
+                    <td class="cell-data">${formattedWhitePer} %</td>
+                </tr>
+                <tr>
+                    <td class="cell-label">Hispanic %:</td>
+                    <td class="cell-data">${formattedHispPer} %</td>
+                </tr>
+            </table>
+        </div>
+    `)
+    .addTo(map);
+
+
+
+
+
+
+
+  }
+});
+
+// Define the updated formatNumber function
+function formatNumber(number, withDollarSign = false) {
+  if (number === 'N/A') return number;
+
+  // Round to two decimal places and convert to a string
+  let str = Number(number).toFixed(2);
+
+  // Add commas as thousands separators
+  str = str.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  // Add the dollar sign if specified
+  if (withDollarSign) {
+    str = '$' + str;
+  }
+
+  return str;
+}
+                </script>
+                </div>
+            </section>
+            <br>               <br>
+            <br>
+            <br> <br>               <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+        </section>
+
+        <!-- Footer-->
+        <footer class="footer bg-black small text-center text-white-50"><div class="container px-4 px-lg-5">Copyright &copy; January Advisors - Kevin Hernandez 2023</div></footer>
+        <!-- Bootstrap core JS-->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Core theme JS-->
+        <script src="js/scripts.js"></script>
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <!-- * *                               SB Forms JS                               * *-->
+        <!-- * * Activate your form at https://startbootstrap.com/solution/contact-forms * *-->
+        <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *-->
+        <script src="https://cdn.startbootstrap.com/sb-forms-latest.js"></script>
+    </body>
+</html>
